@@ -1,13 +1,9 @@
 ---
 layout: post
-# title: "Isolating Environment Variables in xUnit Tests"
-date:   2023-00-00 00:00:00 +1000
-categories: testing
+date:   2023-02-19 00:00:00 +1000
 ---
 
 # Isolating Environment Variables in xUnit Tests
-
-## The Problem
 
 When defining automated testing suites for software systems which utilise environment variables, careful consideration needs to be taken in order to avoid unexpected collisions when manipulating and using these variables while preserving test parallelism.
 
@@ -15,7 +11,7 @@ In our scenario, we require multiple test suites &mdash; each defined within a s
 
 Sounds simple enough. So what's the problem?
 
-## The Erroneous Tests
+## The Problematic Tests
 
 Consider the following two xUnit test suites, in which each contains a single test that sets a common environment variable and &mdash; for demonstration purposes &mdash; asserts that our [system under test](https://en.wikipedia.org/wiki/System_under_test) has visibility of that set value:
 
@@ -171,8 +167,8 @@ While there are of course other solutions to this problem &mdash; including the 
 
 You can find complete examples and further details of each solution above on my GitHub repository linked below.
 
-- [jacobjmarks/xunit-environment-variable-isolation | GitHub](https://github.com/jacobjmarks/xunit-environment-variable-isolation)
+- [jacobjmarks/xunit-environment-variable-isolation \| GitHub](https://github.com/jacobjmarks/xunit-environment-variable-isolation)
 
 ### Further Reading
 
-- [Running Tests in Parallel | xUnit.net](https://xunit.net/docs/running-tests-in-parallel)
+- [Running Tests in Parallel \| xUnit.net](https://xunit.net/docs/running-tests-in-parallel)
