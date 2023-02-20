@@ -21,9 +21,9 @@ class TestSuiteA
     [Fact]
     void Should_See_Foo()
     {
-        Environment.SetEnvironmentVariable("ENVIRONMENT_VARIABLE", "Foo");
+        Environment.SetEnvironmentVariable("ENV_VAR", "Foo");
         var sut = new SystemUnderTest();
-        Assert.Equal("Foo", sut.GetEnvironmentVariable("ENVIRONMENT_VARIABLE"));
+        Assert.Equal("Foo", sut.GetEnvironmentVariable("ENV_VAR"));
     }
 }
 ```
@@ -34,9 +34,9 @@ class TestSuiteB
     [Fact]
     void Should_See_Bar()
     {
-        Environment.SetEnvironmentVariable("ENVIRONMENT_VARIABLE", "Bar");
+        Environment.SetEnvironmentVariable("ENV_VAR", "Bar");
         var sut = new SystemUnderTest();
-        Assert.Equal("Bar", sut.GetEnvironmentVariable("ENVIRONMENT_VARIABLE"));
+        Assert.Equal("Bar", sut.GetEnvironmentVariable("ENV_VAR"));
     }
 }
 ```
@@ -99,7 +99,7 @@ To alleviate the impact of this serial execution, we can instead manipulate our 
 Utilising the `[Collection]` xUnit Attribute, we can place all test suites that modify environment variables under a single test collection such that they are run sequentially. As below:
 
 ``` csharp
-[Collection(nameof(Environment))]
+[Collection("My Custom Collection")]
 class TestSuiteA
 {
     // ...
@@ -107,23 +107,25 @@ class TestSuiteA
 ```
 
 ``` csharp
-[Collection(nameof(Environment))]
+[Collection("My Custom Collection")]
 class TestSuiteB
 {
     // ...
 }
 ```
 
-> Note that I am using `nameof(Environment)` (i.e. `"Environment"`) as a convenient way to describe the test collection, elude to its purpose, and avoid hardcoding string literals.
+> Note that the usage of hardcoded string literals are for demonstration purposes only, and I would highly recommend externalising your constants or otherwise providing a consistent static reference to be used as your collection identifiers.
+
+<!-- > Note that I am using `nameof(Environment)` (i.e. `"Environment"`) as a convenient way to describe the test collection, elude to its purpose, and avoid hardcoding string literals.
 >
-> You do not need to follow suite; as long as each attribute contains the same constant string value, they will be placed within the same test collection.
+> You don't need to follow suite; as long as each attribute contains the same constant string value, they will be placed within the same test collection. -->
 
 However, there are yet additional concerns that need to be addressed with this solution. Our test suites &mdash; now running sequentially within a single test collection &mdash; still share the same process environment and, as a result, a given test's environment may be polluted by the one or more tests that run before it.
 
 For example, if we were to add the following additional assertion to the start of each of our example tests, at least one of the tests will fail (whichever test runs second):
 
 ``` csharp
-Assert.IsNull(Environment.GetEnvironmentVariable("ENVIRONMENT_VARIABLE"));
+Assert.IsNull(Environment.GetEnvironmentVariable("ENV_VAR"));
 ```
 
 While somewhat of a non&ndash;issue for this example given the fact that each of our tests explicitly set the associated environment variable before using it, consider the scenario in which a system under test references an environment variable which it _does not_ set &mdash; a variable that may be unknowingly set by a test that runs first &mdash; and the runtime behaviour is modified. This unexpected and variable runtime behaviour is something we certainly want to avoid, and can do so by having our tests clean up after themselves.
@@ -134,12 +136,12 @@ At a minimum, this can be achieved by simply reverting any modified environment 
 [Fact]
 void Test()
 {
-    var previousValue = Environment.GetEnvironmentVariable("ENVIRONMENT_VARIABLE");
-    Environment.SetEnvironmentVariable("ENVIRONMENT_VARIABLE", "new value");
+    var previousValue = Environment.GetEnvironmentVariable("ENV_VAR");
+    Environment.SetEnvironmentVariable("ENV_VAR", "new value");
 
     // perform the test using our environment variable ...
 
-    Environment.SetEnvironmentVariable("ENVIRONMENT_VARIABLE", previousValue);
+    Environment.SetEnvironmentVariable("ENV_VAR", previousValue);
 }
 ```
 
@@ -165,7 +167,7 @@ You can find complete examples and further details of each solution above on my 
 
 ## Epilogue: A Word From the Author
 
-If you've come this far, I thank you. This is the first article I have published and while the topic of discussion is perhaps not as grandiose as I had originally imagined, I hope it fans the flame for more to come. Stay tuned.
+If you've come this far, I thank you. This is the first article I have published and while the topic of discussion is perhaps not as grandiose as I had originally imagined, I've wanted to create more analytical written content like this for a very long time, and I hope it fans the flame for more to come. Stay tuned.
 
 These were my thoughts.
 
