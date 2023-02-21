@@ -139,17 +139,21 @@ void Test()
     var previousValue = Environment.GetEnvironmentVariable("ENV_VAR");
     Environment.SetEnvironmentVariable("ENV_VAR", "new value");
 
-    // perform the test using our environment variable ...
+    // ...
 
     Environment.SetEnvironmentVariable("ENV_VAR", previousValue);
 }
 ```
 
-> This will of course need to be done for any and all environment variables that are modified during the test. I recommend developing an abstraction around this concept to reduce code duplication and room for error. For example, a disposable `TemporaryEnvironmentVariable/s` class. You can find an example of such in my GitHub repository linked at the end of this article.
+> This will of course need to be done for any and all environment variables that are modified during the test. I recommend developing an abstraction around this concept to reduce code duplication and room for error. <!-- For example, a disposable `TemporaryEnvironmentVariable/s` class. You can find an example of such in my GitHub repository linked at the end of this article. -->
 
 In addition, if your system under test internally modifies one or more environment variables, you will also ideally need to restore these variables to their original values at the end of the test. If you don't know which environment variables will be modified, or the list of variables could change at runtime, you may need to perform a sort of "snapshot" of the environment before your test such that you can appropriately restore it before the next test.
 
-## Solution C: Inversion of Control
+## Solution C: Dependency Inversion
+
+If do, however, govern the system under test and are able to modify its source code &mdash; which is more likely the case &mdash; implementing a layer of abstraction around its environment variable access might be the best solution.
+
+note also however that this will require suitable support within the system under test for [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection), such that any mock implementations that are created for testing purposes can be suitably provided to and utilised by the system.
 
 ## Solution D: Implement a Shim
 
