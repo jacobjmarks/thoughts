@@ -1,6 +1,6 @@
 ---
 layout: post
-date:   2023-02-19 00:00:00 +1000
+date:   2023-00-00 00:00:00 +1000
 ---
 
 # Isolating Environment Variables in xUnit Tests
@@ -43,7 +43,7 @@ class TestSuiteB
 
 While at first glance these tests may seem harmless and quite functional, at least one of these tests will fail due to the way xUnit parallelises its test collections.
 
-By default, xUnit creates a _test collection_ for each class within an assembly, and each of these test collections are run in parallel. This concurrency, however, is achieved with the usage of multiple [threads](https://en.wikipedia.org/wiki/Thread_(computing)), _not_ multiple [processes](https://en.wikipedia.org/wiki/Process_(computing)). If you are unaware, .NET's [`Environment.GetEnvironmentVariable`](https://learn.microsoft.com/en-us/dotnet/api/system.environment.getenvironmentvariable?view=net-7.0) will retrieve environment variables from the current _process_, hence our issue; each thread that the process creates will be accessing and modifying the same underlying environment in which our variables are stored.
+By default, xUnit creates a _test collection_ for each class within an assembly, and each of these test collections are run in parallel. This concurrency, however, is achieved with the usage of multiple [threads](https://en.wikipedia.org/wiki/Thread_(computing)), _not_ multiple [processes](https://en.wikipedia.org/wiki/Process_(computing)). If you are unaware, .NET's [`Environment.GetEnvironmentVariable`](https://learn.microsoft.com/en-us/dotnet/api/system.environment.getenvironmentvariable?view=net-6.0) will retrieve environment variables from the current _process_, hence our issue; each thread that the process creates will be accessing and modifying the same underlying environment in which our variables are stored.
 
 To visualise our conundrum, see below a representation of scope between the Environment which holds our variables, the process which runs our test assembly, and the threads which run our test collections.
 
@@ -86,7 +86,7 @@ This, in essence, achieves our desired process&ndash;level parallelism and assoc
 
 However, creating an entirely new assembly for each test suite is a lot of overhead &mdash; both performance and maintenance &mdash; as well as code duplication.
 
-I wouldn't personally recommend this solution to our problem.
+I wouldn't personally recommend this solution for these reasons.
 
 ## Solution B: Serial Execution
 
@@ -151,11 +151,47 @@ In addition, if your system under test internally modifies one or more environme
 
 ## Solution C: Dependency Inversion
 
-If do, however, govern the system under test and are able to modify its source code &mdash; which is more likely the case &mdash; implementing a layer of abstraction around its environment variable access might be the best solution.
+If do, however, govern the system under test and are able to modify its source code &mdash; which is more than likely the case &mdash; implementing a layer of abstraction around its environment variable access may just be the best solution.
+
+The concept of decoupling high-level components from low-level implementations is known as [Dependency Inversion](https://en.wikipedia.org/wiki/Dependency_inversion_principle), and there's a good reason its one of the five pillars of the broadly-known [SOLID](https://en.wikipedia.org/wiki/SOLID) design principles; When adhering to this pattern, software systems become more modular, maintainable, extensible and _testable_.
+
+``` mermaid
+classDiagram
+    System Under Test ..> IEnvironment
+    IEnvironment <|-- Environment
+```
+
+If the system under test is refactored as to not _directly_ reference the static [`System.Environment`](https://learn.microsoft.com/en-us/dotnet/api/system.environment?view=net-6.0) methods, instead depending only on a defined interface, the implementation can be [stubbed or mocked](https://martinfowler.com/articles/mocksArentStubs.html) as we see fit during our tests.
+
+Consider the following simple interface, which we could utilise:
+
+``` csharp
+interface IEnvironmentVariableProvider
+{
+    string? Get(string variable);
+}
+```
 
 note also however that this will require suitable support within the system under test for [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection), such that any mock implementations that are created for testing purposes can be suitably provided to and utilised by the system.
 
+<!-- ``` csharp
+class EnvironmentVariableProvider : IEnvironmentVariableProvider
+{
+    string? Get(string variable)
+    {
+        return Environment.GetEnvironmentVariable(variable);
+    }
+}
+``` -->
+
 ## Solution D: Implement a Shim
+
+``` csharp
+using (ShimsContext.Create())
+{
+    ShimEnvironment.GetEnvironmentVariableGet = (string variable) => "Foo";
+}
+```
 
 ## Conclusion
 
