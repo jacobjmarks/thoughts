@@ -84,7 +84,7 @@ One way we could solve our problem is by placing each of our test suites within 
 
 While xUnit parallelises test collections within an assembly using threads, assemblies themselves are each executed under a separate process\*.
 
-> \* This _can_ be dependant on the test runner. For more information please see [Running Tests in Parallel &#124; xUnit.net](https://xunit.net/docs/running-tests-in-parallel).
+> \* This _can_ be dependant on the test runner. For more information see [Running Tests in Parallel &#124; xUnit.net](https://xunit.net/docs/running-tests-in-parallel).
 
 This, in essence, achieves our desired process&ndash;level parallelism and associated environment isolation.
 
@@ -158,17 +158,17 @@ void Test()
 
 In addition, if your system under test internally modifies one or more environment variables, you will also ideally need to restore these variables to their original values at the end of the test. If you don't know which environment variables will be modified, or the list of variables could change at runtime, you may need to perform a sort of "snapshot" of the environment at the start of your test such that you can appropriately restore it before the next test runs.
 
-At this point, we have resolved the issues in running our example scenario test suites and have now achieved a level of environment isolation between tests. However, we're still losing a lot of performance due to limiting &mdash; even partially &mdash; the ability for our tests to run concurrently.
+At this point, we have resolved the issues in running our tests and have now achieved a level of environment "isolation" between tests. However, we're still losing a lot of performance due to limiting &mdash; even partially &mdash; the ability for our tests to run concurrently.
 
-If you are not able to modify the internals of the system under test, this may be the best you'll get; But what if you can?
+If you are not able to modify the internals of the system under test, this may just be the best you'll get. But what if you can?
 
 ## Solution C: Dependency Inversion
 
 If you govern the system under test and are able to modify its source code &mdash; which is more than likely the case &mdash; implementing a layer of abstraction around its environment variable access may just be the best solution overall.
 
-The concept of decoupling high-level components from low-level implementations is known as [Dependency Inversion](https://en.wikipedia.org/wiki/Dependency_inversion_principle), and there's a good reason its one of the five pillars of the broadly-known [SOLID](https://en.wikipedia.org/wiki/SOLID) design principles; When adhering to this pattern, software systems become more modular, maintainable, extensible and _testable_.
+The concept of decoupling high-level components from low-level implementations is known as [Dependency Inversion](https://en.wikipedia.org/wiki/Dependency_inversion_principle) (see [Microsoft's documentation](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles#dependency-inversion)), and there's a good reason its one of the five pillars of the broadly-known [SOLID](https://en.wikipedia.org/wiki/SOLID) design principles; When adhering to this pattern, software systems become more modular, maintainable, extensible and _testable_.
 
-[dependency inversion](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles#dependency-inversion)
+The dependency inversion principle says that software components should "Depend upon abstractions, [not] concretions".
 
 [dependency injection](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection)
 
