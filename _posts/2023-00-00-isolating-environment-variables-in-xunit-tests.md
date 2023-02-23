@@ -74,7 +74,7 @@ flowchart TD
     end
 ```
 
-Alas we a left with a [race condition](https://en.wikipedia.org/wiki/Race_condition) when running our tests &mdash; which both attempt to read and write the same environment variable &mdash; in parallel.
+Alas we a left with a [race condition](https://en.wikipedia.org/wiki/Race_condition) when running our tests, which both attempt to read and write the same environment variable in parallel.
 
 So how should we go about resolving this issue?
 
@@ -100,7 +100,7 @@ While this does cause our above tests to pass, running all of our tests sequenti
 
 To alleviate the impact of this serial execution, we can instead manipulate our test collections such that only a subset of tests are run sequentially &mdash; the lesser of evils &mdash; and the performance of all other tests can be maintained and appropriately run concurrently.
 
-Utilising the `[Collection]` xUnit Attribute, we can place all test suites that modify environment variables under a single test collection such that they are run sequentially. As below:
+Utilising the `[Collection]` xUnit Attribute, we can place all test suites that modify environment variables under a single custom test collection such that they are run sequentially. As below:
 
 ``` csharp
 [Collection("My Custom Collection")]
@@ -124,7 +124,7 @@ class TestSuiteB
 >
 > You don't need to follow suite; as long as each attribute contains the same constant string value, they will be placed within the same test collection. -->
 
-However, there are yet additional concerns that need to be addressed with this solution. Our test suites &mdash; now running sequentially within a single test collection &mdash; still share the same process environment and, as a result, a given test's environment may be polluted by the one or more tests that run before it.
+However, there are yet additional concerns that need to be addressed. Our test suites &mdash; now running sequentially within a single test collection &mdash; still share the same process environment and, as a result, a given test's environment may be "polluted" by the one or more tests that run before it.
 
 For example, if we were to add the following additional assertion to the start of each of our example tests, at least one of the tests will fail (whichever test runs second):
 
@@ -168,19 +168,43 @@ If you govern the system under test and are able to modify its source code &mdas
 
 The concept of decoupling high-level components from low-level implementations is known as [Dependency Inversion](https://en.wikipedia.org/wiki/Dependency_inversion_principle) (see [Microsoft's documentation](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles#dependency-inversion)), and there's a good reason its one of the five pillars of the broadly-known [SOLID](https://en.wikipedia.org/wiki/SOLID) design principles; When adhering to this pattern, software systems become more modular, maintainable, extensible and _testable_.
 
-The dependency inversion principle says that software components should "Depend upon abstractions, [not] concretions".
+<!-- The dependency inversion principle says that software components should "Depend upon abstractions, [not] concretions". -->
 
-[dependency injection](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection)
+Currently, our system under test is depending directly on the concrete methods provided via the static [`System.Environment`](https://learn.microsoft.com/en-us/dotnet/api/system.environment?view=net-6.0) class. We can represent this dependency with the following simple diagram:
 
 ``` mermaid
 classDiagram
-    System Under Test ..> IEnvironment
-    IEnvironment <|-- Environment
+    direction LR
+    System Under Test ..> Environment
 ```
 
-If the system under test is refactored as to not _directly_ reference the static [`System.Environment`](https://learn.microsoft.com/en-us/dotnet/api/system.environment?view=net-6.0) methods, instead depending only on a defined interface, the implementation can be [stubbed or mocked](https://martinfowler.com/articles/mocksArentStubs.html) as we see fit during our tests.
+<!-- A design with such little abstraction &mdash; while it can be quick to put together &mdash; lacks a level of flexibility that would be greatly benefit us in our scenario. -->
 
-Consider the following simple interface which we could utilise:
+Making use of the dependency inversion principle, we can implement a layer of abstraction and refactor our design as follows:
+
+``` mermaid
+classDiagram
+    direction LR
+
+    class System Under Test
+    class interface { <<interface>> }
+    class implementation
+    class Environment
+
+    System Under Test ..> interface
+    interface <|-- implementation
+    implementation ..> Environment
+```
+
+<!-- If the system under test is refactored as to not directly depend on the static `System.Environment` methods, instead depending only on a defined interface, the implementation can be [stubbed or mocked](https://martinfowler.com/articles/mocksArentStubs.html) as we see fit during our tests. -->
+
+If the system under test is refactored to depend only on the _interface_, the _implementation_ can be substituted as we see fit; a default implementation can be provided to preserve the existing runtime requirements, and a [stubbed or mocked](https://martinfowler.com/articles/mocksArentStubs.html) implementation can be created and used during our tests.
+
+> Note that this will require a suitable level of support within the system under test for [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) (see [Microsoft's documentation](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection)).
+>
+> In our case, this could be as simple as passing the implementation via the system under test's class constructor.
+
+Consider the following simple interface and associated default implementation which we could utilise:
 
 ``` csharp
 interface IEnvironmentVariableProvider
@@ -189,9 +213,7 @@ interface IEnvironmentVariableProvider
 }
 ```
 
-note also however that this will require suitable support within the system under test for [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection), such that any mock implementations that are created for testing purposes can be suitably provided to and utilised by the system.
-
-<!-- ``` csharp
+``` csharp
 class EnvironmentVariableProvider : IEnvironmentVariableProvider
 {
     string? Get(string variable)
@@ -199,7 +221,70 @@ class EnvironmentVariableProvider : IEnvironmentVariableProvider
         return Environment.GetEnvironmentVariable(variable);
     }
 }
+```
+
+After revising the system under test to depend on this interface, and receive an implementation via the class constructor, we can suitably provide an alternative mock implementation during our tests.
+
+<!-- ``` csharp
+class SystemUnderTest
+{
+    string? GetEnvironmentVariable(string variable)
+    {
+        return Environment.GetEnvironmentVariable(variable);
+    }
+}
+```
+
+``` csharp
+class SystemUnderTest
+{
+    private readonly IEnvironmentVariableProvider _environmentVariables;
+
+    SystemUnderTest(IEnvironmentVariableProvider environmentVariables)
+    {
+        _environmentVariables = environmentVariables;
+    }
+
+    string? GetEnvironmentVariable(string variable)
+    {
+        return _environmentVariables.Get(variable);
+    }
+}
 ``` -->
+
+``` csharp
+class TestSuiteA
+{
+    [Fact]
+    void Should_See_Foo()
+    {
+        var environmentVariables = new MockEnvironmentVariableProvider(new()
+        {
+            new("ENV_VAR", "Foo"),
+        });
+
+        var sut = new SystemUnderTest(environmentVariables);
+        Assert.Equal("Foo", sut.GetEnvironmentVariable("ENV_VAR"));
+    }
+}
+```
+
+``` csharp
+class TestSuiteB
+{
+    [Fact]
+    void Should_See_Bar()
+    {
+        var environmentVariables = new MockEnvironmentVariableProvider(new()
+        {
+            new("ENV_VAR", "Bar"),
+        });
+
+        var sut = new SystemUnderTest(environmentVariables);
+        Assert.Equal("Bar", sut.GetEnvironmentVariable("ENV_VAR"));
+    }
+}
+```
 
 ## Solution D: Implement a Shim
 
