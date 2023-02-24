@@ -7,11 +7,11 @@ repo:   https://github.com/jacobjmarks/xunit-environment-variable-isolation
 
 # Isolating Environment Variables in xUnit Tests
 
-When testing systems that utilise environment variables at runtime, careful consideration needs to be given to the design of both the system, if governed, and the test suite in order to avoid unexpected and seemingly irreproducible runtime and assertion failures.
+When testing systems that utilise environment variables at runtime, careful consideration needs to be given to the design of both the system, if governed, and the test suite in order to avoid unexpected and seemingly irreproducible runtime and assertion failures when these variables are used in parallel.
 
 In our scenario, we require multiple test suites &mdash; each defined within a separate class &mdash; which tests some code that utilises a common set of environment variables.
 
-Sounds simple enough. So what's the problem? The goal of this article is to answer this question, dive a little deeper into the _why_, and equip you with the tools and knowledge necessary to tackle this issue when a faced with similar if not identical scenarios.
+Sounds simple enough. So what's the problem? The goal of this article is to answer this question, dive a little deeper into the _why_, and equip you with the tools and knowledge necessary to tackle this issue when faced with similar if not identical situations.
 
 ## The Problem
 
@@ -74,7 +74,7 @@ flowchart TD
     end
 ```
 
-Alas we a left with a [race condition](https://en.wikipedia.org/wiki/Race_condition) when running our tests, which both attempt to read and write the same environment variable in parallel.
+As can be seen, irrespective of the thread in which we use, the same Environment with be utilised. Alas we a left with a [race condition](https://en.wikipedia.org/wiki/Race_condition) when running our tests, which both attempt to read and write the same environment variable in parallel.
 
 So how should we go about resolving this issue?
 
@@ -90,7 +90,7 @@ This, in essence, achieves our desired process&ndash;level parallelism and assoc
 
 However, creating an entirely new assembly for each test suite is a lot of overhead &mdash; both performance and maintenance &mdash; as well as code duplication.
 
-This is a band-aid fix. I wouldn't personally recommend this solution for the reasons mentioned above.
+This is a band-aid fix. I wouldn't personally recommend this solution.
 
 ## Solution B: Serial Execution
 
@@ -98,7 +98,7 @@ Perhaps the most obvious solution is to simply disable parallelism altogether an
 
 While this does cause our above tests to pass, running all of our tests sequentially is not ideal; particularly if and when there are test collections that do not require such constraints and are perfectly capable of being run in parallel without consequence.
 
-To alleviate the impact of this serial execution, we can instead manipulate our test collections such that only a subset of tests are run sequentially &mdash; the lesser of evils &mdash; and the performance of all other tests can be maintained and appropriately run concurrently.
+To alleviate the impact of serial execution, we can instead manipulate our test collections such that only a subset of tests are run sequentially &mdash; the lesser of evils &mdash; and the performance of all other tests can be maintained and appropriately run concurrently.
 
 Utilising the `[Collection]` xUnit Attribute, we can place all test suites that modify environment variables under a single custom test collection such that they are run sequentially. As below:
 
@@ -118,7 +118,7 @@ class TestSuiteB
 }
 ```
 
-> Note that the usage of hardcoded string literals are for demonstration purposes only, and I would highly recommend externalising your constants or otherwise providing a consistent static reference to be used as your collection identifiers.
+> Note that the use of hardcoded string literals is for demonstration purposes only, and I would highly recommend externalising your constants or otherwise providing a consistent static reference to be used as your collection identifiers.
 
 However, there are yet additional concerns that need to be addressed. Our test suites &mdash; now running sequentially within a single test collection &mdash; still share the same process environment and, as a result, a given test's environment may be "polluted" by the one or more tests that run before it.
 
@@ -137,7 +137,7 @@ At a minimum, this can be achieved by simply reverting any modified environment 
 void Test()
 {
     var previousValue = Environment.GetEnvironmentVariable("ENV_VAR");
-    Environment.SetEnvironmentVariable("ENV_VAR", "new value");
+    Environment.SetEnvironmentVariable("ENV_VAR", "Baz");
 
     try
     {
@@ -150,13 +150,13 @@ void Test()
 }
 ```
 
-> This will of course need to be done for any and all environment variables that are modified during the test. I recommend developing an [`IDisposable`](https://learn.microsoft.com/en-us/dotnet/api/system.idisposable?view=net-7.0) abstraction around this concept to reduce code duplication and room for error. You can find an example [here]().
+> This will of course need to be done for any and all environment variables that are modified during the test. I recommend developing an [`IDisposable`](https://learn.microsoft.com/en-us/dotnet/api/system.idisposable?view=net-7.0) abstraction around this concept to reduce code duplication and room for error. You can find an example of one [here]().
 
-In addition, if your system under test internally modifies one or more environment variables, you will also ideally need to restore these variables to their original values at the end of the test. If you don't know which environment variables will be modified, or the list of variables could change at runtime, you may need to perform a sort of "snapshot" of the environment at the start of your test such that you can appropriately restore it before the next test runs.
+<!-- In addition, if your system under test internally modifies one or more environment variables, you will also ideally need to restore these variables to their original values at the end of the test. If you don't know which environment variables will be modified, or the list of variables could change at runtime, you may need to perform a sort of "snapshot" of the environment at the start of your test such that you can appropriately restore it before the next test runs. -->
 
-At this point, we have resolved the issues in running our tests and have now achieved a level of environment "isolation" between tests. However, we're still losing a lot of performance due to limiting &mdash; even partially &mdash; the ability for our tests to run concurrently.
+With this additional cleanup in-place, we have now not only resolved the issues in running our tests, but have also achieved a level of environment "isolation" between them. However, we're still losing a lot of performance due to limiting &mdash; even partially &mdash; the ability for our tests to run concurrently.
 
-If you are not able to modify the internals of the system under test, this may just be the best you'll get. But what if you can?
+<!-- If you are not able to modify the internals of the system under test, this may just be the best you'll get. -->
 
 ## Solution C: Dependency Inversion
 
@@ -194,9 +194,7 @@ classDiagram
 
 If the system under test is refactored to depend only on the _interface_, the _implementation_ can be substituted as we see fit; a default implementation can be provided to preserve the existing runtime requirements, and a stub or mock implementation can be created and used during our tests.
 
-> Note that this will require a suitable level of support within the system under test for [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) (see [Microsoft's documentation](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection)).
->
-> In our case, this could be as simple as passing the implementation via the system under test's class constructor.
+> Note that this will require a suitable level of support within the system under test for [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) (see [Microsoft's documentation](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection)). In our case, this could be as simple as passing the implementation via the system under test's class constructor.
 
 Consider the following simple interface which we could utilise:
 
@@ -207,7 +205,7 @@ interface IEnvironmentVariableProvider
 }
 ```
 
-While some additional details have been omitted here for brevity (I'm going to assume you have a basic understanding of interfaces, implementations, and dependency injection), after refactoring our system under test, we can update our tests to make use of a stub in-memory environment variable provider &mdash; which implements our new interface &mdash; as below:
+While some additional code excerpts have been omitted here for brevity (I'm going to assume you have a basic understanding of interfaces, implementations, and dependency injection), after refactoring our system under test, we can update our tests to make use of a stub in-memory environment variable provider &mdash; which implements our new interface &mdash; as below:
 
 > Full implementation details can be found within this articles associated GitHub repository [here]({{ page.repo }}).
 
@@ -217,11 +215,12 @@ class TestSuiteA
     [Fact]
     void Should_See_Foo()
     {
-        var environmentVariables = new InMemoryEnvironmentVariableProvider(new()
+        IEnvironmentVariableProvider environmentVariables = new InMemoryEnvironmentVariableProvider(new()
         {
             new("ENV_VAR", "Foo"),
         });
 
+        // provide the stub via constructor-level dependency injection
         var sut = new SystemUnderTest(environmentVariables);
         Assert.Equal("Foo", sut.GetEnvironmentVariable("ENV_VAR"));
     }
