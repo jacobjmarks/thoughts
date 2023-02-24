@@ -198,13 +198,13 @@ classDiagram
 
 <!-- If the system under test is refactored as to not directly depend on the static `System.Environment` methods, instead depending only on a defined interface, the implementation can be [stubbed or mocked](https://martinfowler.com/articles/mocksArentStubs.html) as we see fit during our tests. -->
 
-If the system under test is refactored to depend only on the _interface_, the _implementation_ can be substituted as we see fit; a default implementation can be provided to preserve the existing runtime requirements, and a [stubbed or mocked](https://martinfowler.com/articles/mocksArentStubs.html) implementation can be created and used during our tests.
+If the system under test is refactored to depend only on the _interface_, the _implementation_ can be substituted as we see fit; a default implementation can be provided to preserve the existing runtime requirements, and a stub or mock implementation can be created and used during our tests.
 
 > Note that this will require a suitable level of support within the system under test for [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) (see [Microsoft's documentation](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection)).
 >
 > In our case, this could be as simple as passing the implementation via the system under test's class constructor.
 
-Consider the following simple interface and associated default implementation which we could utilise:
+Consider the following simple interface which we could utilise:
 
 ``` csharp
 interface IEnvironmentVariableProvider
@@ -213,7 +213,11 @@ interface IEnvironmentVariableProvider
 }
 ```
 
-``` csharp
+While some additional details have been omitted here for brevity (I'm going to assume you have a basic understanding of interfaces, implementations, and dependency injection), after refactoring our system under test, we can update our tests to make use of a stub in-memory environment variable provider &mdash; which implements our new interface &mdash; as below:
+
+> Full implementation details can be found within the GitHub repository linked at the end of the article.
+
+<!-- ``` csharp
 class EnvironmentVariableProvider : IEnvironmentVariableProvider
 {
     string? Get(string variable)
@@ -221,9 +225,9 @@ class EnvironmentVariableProvider : IEnvironmentVariableProvider
         return Environment.GetEnvironmentVariable(variable);
     }
 }
-```
+``` -->
 
-After revising the system under test to depend on this interface, and receive an implementation via the class constructor, we can suitably provide an alternative mock implementation during our tests.
+<!-- After revising the system under test to depend on this interface, and receive an implementation via the class constructor, we can suitably provide an alternative mock implementation during our tests. -->
 
 <!-- ``` csharp
 class SystemUnderTest
@@ -258,7 +262,7 @@ class TestSuiteA
     [Fact]
     void Should_See_Foo()
     {
-        var environmentVariables = new MockEnvironmentVariableProvider(new()
+        var environmentVariables = new InMemoryEnvironmentVariableProvider(new()
         {
             new("ENV_VAR", "Foo"),
         });
@@ -275,7 +279,7 @@ class TestSuiteB
     [Fact]
     void Should_See_Bar()
     {
-        var environmentVariables = new MockEnvironmentVariableProvider(new()
+        var environmentVariables = new InMemoryEnvironmentVariableProvider(new()
         {
             new("ENV_VAR", "Bar"),
         });
@@ -286,37 +290,54 @@ class TestSuiteB
 }
 ```
 
-## Solution D: Implement a Shim
+With this stub in place, our tests are now _fully_ isolated; There are no dependencies on concrete external components and our tests are capable of being run with full parallelism without risk of race conditions of the environment variable collision or pollution.
 
-``` csharp
-using (ShimsContext.Create())
-{
-    ShimEnvironment.GetEnvironmentVariableGet = (string variable) => "Foo";
-}
-```
+> Note however that we are now utilising the system under test in a way that is discrepant from how it would be used during normal operation. As such, we need to ensure we create suitable tests for the default implementation of our new interface, and could even go so far as to assert that this implementation is utilised when initialising the system for regular use.
+
+<!-- > It could be argued that introducing these layers of abstraction and utilising stubs during testing is a step away from the "reality" of the system under test; after all, we are no longer testing the system under the same conditions it will 
+
+However, as long as you have defined another suite of tests which asserts the implementation types that will be utilised by the system at runtime, you should have all bases covered. You could even go so far as to write a test that asserts the type of implementation which is injected during normal use. -->
+
+<!-- It could be argued that the introduction of these layers of abstraction, and the utilisation of an implementation other than that which will be used during regular operation,   -->
+
+## Honorable Mention: Implement a Shim
+
+There exists one more solution approach worth mentioning, that being the utilisation of [shims](https://en.wikipedia.org/wiki/Shim_(computing)).
+
+A shim is essentially a transparent middleware which can be implicitly injected into the context of a running application, such that it can be utilised in place of another dependency.
+
+Consider the layer of abstraction that we introduced in the previous solution, a shim could be used instead of these additional components, and no modifications need be introduced to the system under test; we can directly override the static `System.Environment` methods.
+
+Sounds great, right?
+
+Unfortunately, standard testing frameworks (including xUnit) do not support shims and you may find it difficult to find libraries which do; [Pose](https://github.com/tonerdo/pose) was once promising however it has not been updated in some time and does not support the latest versions of .NET.
+
+Currently, the most prominent way to use shims in .NET is via the [Microsoft Fakes Framework](https://learn.microsoft.com/en-us/visualstudio/test/code-generation-compilation-and-naming-conventions-in-microsoft-fakes?view=vs-2022) &mdash; however, it requires Visual Studio Enterprise and only supports MSTest testing projects.
+
+While shims can be a powerful method of test isolation &mdash; especially if you cannot modify the system under test &mdash; I could not find a viable solution for there use within xUnit for this test scenario.
+
+<!-- ### See more
+
+- [Use shims to isolate your app for unit testing &#124; Microsoft Learn](https://learn.microsoft.com/en-us/visualstudio/test/using-shims-to-isolate-your-application-from-other-assemblies-for-unit-testing?view=vs-2022&tabs=csharp) -->
 
 ## Conclusion
 
 and a lot of these concepts are not specific to xUnit, or testing altogether, and could be used in a variety of contexts.
 
-consider whether the utilisation of environment variables
-
-[options pattern](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-6.0)
-
 While there are of course other solutions to this problem &mdash; including the usage of [Mutexes](https://learn.microsoft.com/en-us/dotnet/standard/threading/mutexes) or the manual creation of sub&ndash;processes to achieve isolation (consider the [Tmds.ExecFunction](https://github.com/tmds/Tmds.ExecFunction) library) &mdash; these solutions stray further from what I would consider good practice and can start to become quite convoluted.
 
-You can find complete examples and further details of each solution above on my GitHub repository linked below.
+I would also strongly suggest considering for your use case whether it would make sense to move away from the direct consumption of environment variables throughout your system under test, instead opting for a more traditional [.NET Configuration](https://learn.microsoft.com/en-us/dotnet/core/extensions/configuration) and [Options pattern](https://learn.microsoft.com/en-us/dotnet/core/extensions/options) approach; a robust, well-documented and common solution which lends itself to the previously discussed dependency inversion principle, among others.
+
+You can find complete examples and implementation details of all discussed solutions within the GitHub repository linked below:
 
 - [jacobjmarks/xunit-environment-variable-isolation &#124; GitHub](https://github.com/jacobjmarks/xunit-environment-variable-isolation)
 
-### References
-
-- [Running Tests in Parallel &#124; xUnit.net](https://xunit.net/docs/running-tests-in-parallel)
-
 ## Epilogue: A Word From the Author
 
-If you've come this far, I thank you. This is the first article I have published and while the topic of discussion is perhaps not as grandiose as I had originally imagined, I've wanted to create more analytical written content like this for a very long time, and I hope it fans the flame for more to come. Stay tuned.
-
-These were my thoughts.
+If you've come this far, I thank you. This is the first blog post/article I have published (since my [university days](https://github.com/jacobjmarks/cvtree-parallel/blob/master/assets/9188100%20Report.pdf)) and while the topic of discussion is perhaps not as grandiose and a little more niche as I had originally imagined for my debut piece, I've wanted to create more analytical written content like this for a very long time, and I hope it fans the flame for more to come. Stay tuned.
 
 \- Jacob
+
+~
+
+These were my thoughts.
