@@ -1,13 +1,13 @@
 ---
 layout: post
 date:   2023-00-00 00:00:00 +1000
+assets: assets/2023-00-00-isolating-environment-variables-in-xunit-tests
+repo:   https://github.com/jacobjmarks/xunit-environment-variable-isolation
 ---
 
 # Isolating Environment Variables in xUnit Tests
 
 When testing systems that utilise environment variables at runtime, careful consideration needs to be given to the design of both the system, if governed, and the test suite in order to avoid unexpected and seemingly irreproducible runtime and assertion failures.
-
-When defining automated and testing suites for software systems which utilise environment variables at runtime, careful consideration is needed in order to avoid unexpected and non-reputable failures.
 
 In our scenario, we require multiple test suites &mdash; each defined within a separate class &mdash; which tests some code that utilises a common set of environment variables.
 
@@ -120,10 +120,6 @@ class TestSuiteB
 
 > Note that the usage of hardcoded string literals are for demonstration purposes only, and I would highly recommend externalising your constants or otherwise providing a consistent static reference to be used as your collection identifiers.
 
-<!-- > Note that I am using `nameof(Environment)` (i.e. `"Environment"`) as a convenient way to describe the test collection, elude to its purpose, and avoid hardcoding string literals.
->
-> You don't need to follow suite; as long as each attribute contains the same constant string value, they will be placed within the same test collection. -->
-
 However, there are yet additional concerns that need to be addressed. Our test suites &mdash; now running sequentially within a single test collection &mdash; still share the same process environment and, as a result, a given test's environment may be "polluted" by the one or more tests that run before it.
 
 For example, if we were to add the following additional assertion to the start of each of our example tests, at least one of the tests will fail (whichever test runs second):
@@ -168,21 +164,21 @@ If you govern the system under test and are able to modify its source code &mdas
 
 The concept of decoupling high-level components from low-level implementations is known as [Dependency Inversion](https://en.wikipedia.org/wiki/Dependency_inversion_principle) (see [Microsoft's documentation](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles#dependency-inversion)), and there's a good reason its one of the five pillars of the broadly-known [SOLID](https://en.wikipedia.org/wiki/SOLID) design principles; When adhering to this pattern, software systems become more modular, maintainable, extensible and _testable_.
 
-<!-- The dependency inversion principle says that software components should "Depend upon abstractions, [not] concretions". -->
-
 Currently, our system under test is depending directly on the concrete methods provided via the static [`System.Environment`](https://learn.microsoft.com/en-us/dotnet/api/system.environment?view=net-6.0) class. We can represent this dependency with the following simple diagram:
 
-``` mermaid
+![UML Diagram A]({{ page.assets | relative_url }}/uml-a.drawio.svg)
+
+<!-- ``` mermaid
 classDiagram
     direction LR
     System Under Test ..> Environment
-```
-
-<!-- A design with such little abstraction &mdash; while it can be quick to put together &mdash; lacks a level of flexibility that would be greatly benefit us in our scenario. -->
+``` -->
 
 Making use of the dependency inversion principle, we can implement a layer of abstraction and refactor our design as follows:
 
-``` mermaid
+![UML Diagram B]({{ page.assets | relative_url }}/uml-b.drawio.svg)
+
+<!-- ``` mermaid
 classDiagram
     direction LR
 
@@ -194,9 +190,7 @@ classDiagram
     System Under Test ..> interface
     interface <|-- implementation
     implementation ..> Environment
-```
-
-<!-- If the system under test is refactored as to not directly depend on the static `System.Environment` methods, instead depending only on a defined interface, the implementation can be [stubbed or mocked](https://martinfowler.com/articles/mocksArentStubs.html) as we see fit during our tests. -->
+``` -->
 
 If the system under test is refactored to depend only on the _interface_, the _implementation_ can be substituted as we see fit; a default implementation can be provided to preserve the existing runtime requirements, and a stub or mock implementation can be created and used during our tests.
 
@@ -215,46 +209,7 @@ interface IEnvironmentVariableProvider
 
 While some additional details have been omitted here for brevity (I'm going to assume you have a basic understanding of interfaces, implementations, and dependency injection), after refactoring our system under test, we can update our tests to make use of a stub in-memory environment variable provider &mdash; which implements our new interface &mdash; as below:
 
-> Full implementation details can be found within the GitHub repository linked at the end of the article.
-
-<!-- ``` csharp
-class EnvironmentVariableProvider : IEnvironmentVariableProvider
-{
-    string? Get(string variable)
-    {
-        return Environment.GetEnvironmentVariable(variable);
-    }
-}
-``` -->
-
-<!-- After revising the system under test to depend on this interface, and receive an implementation via the class constructor, we can suitably provide an alternative mock implementation during our tests. -->
-
-<!-- ``` csharp
-class SystemUnderTest
-{
-    string? GetEnvironmentVariable(string variable)
-    {
-        return Environment.GetEnvironmentVariable(variable);
-    }
-}
-```
-
-``` csharp
-class SystemUnderTest
-{
-    private readonly IEnvironmentVariableProvider _environmentVariables;
-
-    SystemUnderTest(IEnvironmentVariableProvider environmentVariables)
-    {
-        _environmentVariables = environmentVariables;
-    }
-
-    string? GetEnvironmentVariable(string variable)
-    {
-        return _environmentVariables.Get(variable);
-    }
-}
-``` -->
+> Full implementation details can be found within this articles associated GitHub repository [here]({{ page.repo }}).
 
 ``` csharp
 class TestSuiteA
@@ -273,32 +228,13 @@ class TestSuiteA
 }
 ```
 
-``` csharp
-class TestSuiteB
-{
-    [Fact]
-    void Should_See_Bar()
-    {
-        var environmentVariables = new InMemoryEnvironmentVariableProvider(new()
-        {
-            new("ENV_VAR", "Bar"),
-        });
+And likewise for our `TestSuiteB`, replacing `"Foo"` with `"Bar"`.
 
-        var sut = new SystemUnderTest(environmentVariables);
-        Assert.Equal("Bar", sut.GetEnvironmentVariable("ENV_VAR"));
-    }
-}
-```
-
-With this stub in place, our tests are now _fully_ isolated; There are no dependencies on concrete external components and our tests are capable of being run with full parallelism without risk of race conditions of the environment variable collision or pollution.
+With this stub in place, our tests are now _fully_ isolated; There are no dependencies on concrete external components and our tests are capable of being run with full parallelism without any risk of environment variable collision or pollution.
 
 > Note however that we are now utilising the system under test in a way that is discrepant from how it would be used during normal operation. As such, we need to ensure we create suitable tests for the default implementation of our new interface, and could even go so far as to assert that this implementation is utilised when initialising the system for regular use.
 
-<!-- > It could be argued that introducing these layers of abstraction and utilising stubs during testing is a step away from the "reality" of the system under test; after all, we are no longer testing the system under the same conditions it will 
-
-However, as long as you have defined another suite of tests which asserts the implementation types that will be utilised by the system at runtime, you should have all bases covered. You could even go so far as to write a test that asserts the type of implementation which is injected during normal use. -->
-
-<!-- It could be argued that the introduction of these layers of abstraction, and the utilisation of an implementation other than that which will be used during regular operation,   -->
+I believe dependency inversion to be the best solution to our problem. Implementing an additional layer of abstraction provides us with immense flexibility, not only when it comes to writing automated tests,
 
 ## Honorable Mention: Implement a Shim
 
@@ -314,30 +250,22 @@ Unfortunately, standard testing frameworks (including xUnit) do not support shim
 
 Currently, the most prominent way to use shims in .NET is via the [Microsoft Fakes Framework](https://learn.microsoft.com/en-us/visualstudio/test/code-generation-compilation-and-naming-conventions-in-microsoft-fakes?view=vs-2022) &mdash; however, it requires Visual Studio Enterprise and only supports MSTest testing projects.
 
-While shims can be a powerful method of test isolation &mdash; especially if you cannot modify the system under test &mdash; I could not find a viable solution for there use within xUnit for this test scenario.
-
-<!-- ### See more
-
-- [Use shims to isolate your app for unit testing &#124; Microsoft Learn](https://learn.microsoft.com/en-us/visualstudio/test/using-shims-to-isolate-your-application-from-other-assemblies-for-unit-testing?view=vs-2022&tabs=csharp) -->
+While shims can be a powerful method of test isolation &mdash; especially if you cannot modify the system under test &mdash; I could not find a viable method of utilising them for our scenario.
 
 ## Conclusion
-
-and a lot of these concepts are not specific to xUnit, or testing altogether, and could be used in a variety of contexts.
 
 While there are of course other solutions to this problem &mdash; including the usage of [Mutexes](https://learn.microsoft.com/en-us/dotnet/standard/threading/mutexes) or the manual creation of sub&ndash;processes to achieve isolation (consider the [Tmds.ExecFunction](https://github.com/tmds/Tmds.ExecFunction) library) &mdash; these solutions stray further from what I would consider good practice and can start to become quite convoluted.
 
 I would also strongly suggest considering for your use case whether it would make sense to move away from the direct consumption of environment variables throughout your system under test, instead opting for a more traditional [.NET Configuration](https://learn.microsoft.com/en-us/dotnet/core/extensions/configuration) and [Options pattern](https://learn.microsoft.com/en-us/dotnet/core/extensions/options) approach; a robust, well-documented and common solution which lends itself to the previously discussed dependency inversion principle, among others.
 
-You can find complete examples and implementation details of all discussed solutions within the GitHub repository linked below:
+You can find complete examples and implementation details of all discussed solutions within the associated GitHub repository linked below:
 
-- [jacobjmarks/xunit-environment-variable-isolation &#124; GitHub](https://github.com/jacobjmarks/xunit-environment-variable-isolation)
+- [{{ page.repo | remove: "https://github.com/" }} &#124; GitHub]({{ page.repo }})
 
 ## Epilogue: A Word From the Author
 
-If you've come this far, I thank you. This is the first blog post/article I have published (since my [university days](https://github.com/jacobjmarks/cvtree-parallel/blob/master/assets/9188100%20Report.pdf)) and while the topic of discussion is perhaps not as grandiose and a little more niche as I had originally imagined for my debut piece, I've wanted to create more analytical written content like this for a very long time, and I hope it fans the flame for more to come. Stay tuned.
+If you've made it this far, I thank you. This is the first blog post/article I have published (since my [university days](https://github.com/jacobjmarks/cvtree-parallel/blob/master/assets/9188100%20Report.pdf)) and while the topic of discussion is perhaps not as grandiose as I had originally imagined, I've wanted to create more analytical written content like this for a very long time, and I hope it fans the flame for more to come. Stay tuned.
 
 \- Jacob
-
-~
 
 These were my thoughts.
