@@ -1,7 +1,10 @@
 ---
 layout: post
 date:   2023-00-00 00:00:00 +1000
-assets: assets/2023-00-00-isolating-environment-variables-in-xunit-tests
+draft: true # exclude from feed.xml
+published: false # exclude from homepage
+sitemap: false # exclude from sitemap.xml
+tags: testing
 repo:   https://github.com/jacobjmarks/xunit-environment-variable-isolation
 ---
 
