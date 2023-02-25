@@ -42,6 +42,16 @@ plugins:
   - jekyll-titles-from-headings
   - jekyll-sitemap
 
+defaults:
+  - scope:
+      path: ""
+    values:
+      image:
+        path: /assets/me.jpg
+        width: 192
+        height: 192
+        alt: Portrait Image
+
 titles_from_headings:
   enabled:     true
   strip_title: true
