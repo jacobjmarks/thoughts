@@ -39,6 +39,7 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
   - jekyll-titles-from-headings
+  - jekyll-sitemap
 
 titles_from_headings:
   enabled:     true
