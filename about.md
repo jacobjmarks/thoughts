@@ -25,9 +25,11 @@ Thanks for visiting.
 
 [LinkedIn](https://www.linkedin.com/in/{{site.linkedin_username}}) / [GitHub](https://github.com/{{site.github_username}})
 
-[Buy me a coffee? 🍵](https://buymeacoffee.com/jacobjmarks)
+<a onclick="document.getElementById('bmc-wbtn').click()" style="cursor:pointer">Buy me a coffee?</a>
 
 <br/>
 <small>
 All content published to this site contains no AI-generated materials and will be cited as necessary; _these are my thoughts_.
 </small>
+
+{%- include bmc-widget.html -%}
