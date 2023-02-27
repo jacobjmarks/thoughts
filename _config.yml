@@ -24,9 +24,9 @@ email: jacobjmarks@outlook.com
 description: A blog by Jacob.
 tagline: jacobjmarks.dev
 locale: en_AU
-domain: jacobjmarks.dev      # if you want to force HTTPS, specify the domain without the http at the start, e.g. example.com
-url: https://jacobjmarks.dev # the base hostname and protocol for your site, e.g. http://example.com
-baseurl: ""         # place folder name if the site is served in a subfolder
+#domain: jacobjmarks.dev      # if you want to force HTTPS, specify the domain without the http at the start, e.g. example.com
+#url: https://jacobjmarks.dev # the base hostname and protocol for your site, e.g. http://example.com
+#baseurl: ""                  # place folder name if the site is served in a subfolder
 
 show_excerpts: true
 unpublished: true
