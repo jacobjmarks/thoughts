@@ -50,7 +50,7 @@ By default, xUnit creates a _test collection_ for each class within an assembly,
 
 To visualise our conundrum, see below a representation of scope between the Environment which holds our variables, the process which runs our test assembly, and the threads which run our test collections.
 
-{{< figure src="env-scope.drawio.svg" alt="Environment scope" align="center" >}}
+{{< figure src="env-scope.drawio.svg" alt="Environment scope" align="center" width="435em" >}}
 
 As can be seen, irrespective of the thread in which we use, the same Environment with be utilised. Alas, we a left with a [race condition](https://en.wikipedia.org/wiki/Race_condition) when running our tests, which both attempt to read and write the same environment variable in parallel.
 
@@ -144,11 +144,11 @@ The concept of decoupling high-level components from low-level implementations i
 
 Currently, our system under test is depending directly on the concrete methods provided via the static [`System.Environment`](https://learn.microsoft.com/en-us/dotnet/api/system.environment?view=net-6.0) class. We can represent this dependency with the following simple diagram:
 
-{{< figure src="uml-a.drawio.svg" alt="UML Diagram A" align="center" >}}
+{{< figure src="uml-a.drawio.svg" alt="UML Diagram A" align="center" width="165em" >}}
 
 Making use of the dependency inversion principle, we can implement a layer of abstraction and refactor our design as follows:
 
-{{< figure src="uml-b.drawio.svg" alt="UML Diagram B" align="center" >}}
+{{< figure src="uml-b.drawio.svg" alt="UML Diagram B" align="center" width="465em" >}}
 
 If the system under test is refactored to depend only on the _interface_, the _implementation_ can be substituted as we see fit; a default implementation can be provided to preserve the existing runtime requirements, and a stub or mock implementation can be created and used during our tests.
 
