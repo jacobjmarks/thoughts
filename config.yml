@@ -1,0 +1,114 @@
+baseURL: https://hugo-test.jacobjmarks.dev/
+languageCode: en-us
+title: these are my thoughts
+copyright: >-
+  &copy; {{< year >}} [Jacob Marks](https://github.com/jacobjmarks)
+
+theme: PaperMod
+
+enableRobotsTXT: true
+buildDrafts: false
+buildFuture: false
+buildExpired: false
+
+params:
+  description: "A blog by Jacob."
+  keywords: [Blog, Portfolio, PaperMod]
+  author: ["Jacob Marks"]
+  images: ["/images/jacobmarks.jpg"]
+  DateFormat: "January 2, 2006"
+  defaultTheme: auto # dark, light
+  disableThemeToggle: true
+
+  ShowReadingTime: true
+  ShowShareButtons: true
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: false
+  ShowWordCount: false
+  ShowRssButtonInSectionTermList: true
+  UseHugoToc: true
+  disableSpecial1stPost: false
+  disableScrollToTop: false
+  comments: false
+  hidemeta: false
+  hideSummary: false
+  showtoc: false
+  tocopen: false
+
+  # profile-mode
+  profileMode:
+    enabled: false
+    title: "Hi there 👋"
+    subtitle: "These are my thoughts."
+    imageUrl: "images/jacobmarks.jpg"
+    imageWidth: 200
+    imageHeight: 200
+    imageTitle: Portrait
+    buttons:
+      - name: Posts
+        url: posts
+      - name: Tags
+        url: tags
+
+  # home-info mode
+  homeInfoParams:
+    Title: "Hi there 👋"
+    Content: "These are my thoughts."
+
+  socialIcons:
+    - name: linkedin
+      title: LinkedIn
+      url: "https://linkedin.com/in/jacobjmarks"
+    - name: github
+      title: GitHub
+      url: "https://github.com/jacobjmarks"
+    - name: rss
+      title: Subscribe
+      url: "posts/index.xml"
+    - name: buymeacoffee
+      title: Buy Me a Coffee
+      url: "https://www.buymeacoffee.com/jacobjmarks"
+
+  # cover:
+  #   hidden: true # hide everywhere but not in structured data
+  #   hiddenInList: true # hide on list pages and home
+  #   hiddenInSingle: true # hide on single page
+
+  editPost:
+    URL: "https://github.com/jacobjmarks/thoughts/content"
+    Text: "suggest an edit"
+    appendFilePath: true
+
+  # # for search
+  # # https://fusejs.io/api/options.html
+  # fuseOpts:
+  #   isCaseSensitive: false
+  #   shouldSort: true
+  #   location: 0
+  #   distance: 1000
+  #   threshold: 0.4
+  #   minMatchCharLength: 0
+  #   keys: ["title", "permalink", "summary", "content"]
+
+taxonomies:
+  tag: tags
+
+menu:
+  main:
+    - identifier: about
+      name: About
+      url: /about/
+      weight: 1
+    - identifier: posts
+      name: Posts
+      url: /posts/
+      weight: 1
+    - identifier: tags
+      name: Tags
+      url: /tags/
+      weight: 2
+    - identifier: archive
+      name: Archive
+      url: /archive/
+      weight: 3
