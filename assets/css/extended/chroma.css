@@ -1,0 +1,15 @@
+.chroma {
+    background-color: unset !important;
+}
+
+:root {
+    --hljs-bg: #f0f0f0;
+}
+
+.dark {
+    --hljs-bg: #272822;
+}
+
+code {
+    color: unset !important;
+}

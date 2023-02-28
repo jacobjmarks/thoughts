@@ -20,6 +20,9 @@ params:
   defaultTheme: auto # dark, light
   disableThemeToggle: true
 
+  assets:
+    disableHLJS: true
+
   ShowReadingTime: true
   ShowShareButtons: true
   ShowPostNavLinks: true
@@ -112,3 +115,13 @@ menu:
       name: Archive
       url: /archive/
       weight: 3
+
+# Read: https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#using-hugos-syntax-highlighter-chroma
+pygmentsUseClasses: true
+markup:
+  highlight:
+    codeFences: true
+    noClasses: false
+    lineNos: true
+    anchorLineNos: false
+    guessSyntax: false
