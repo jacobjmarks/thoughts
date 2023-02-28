@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Isolating Environment Variables in xUnit Tests
-date: "2023-01-01"
+date: "2023-02-25"
 tags: [.NET, Testing]
 ---
 
