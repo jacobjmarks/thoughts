@@ -51,26 +51,12 @@ By default, xUnit creates a _test collection_ for each class within an assembly,
 To visualise our conundrum, see below a representation of scope between the Environment which holds our variables, the process which runs our test assembly, and the threads which run our test collections.
 
 ``` mermaid
-flowchart TD
-    subgraph "Environment<sup>n</sup>"
-    subgraph "Process<sup>n</sup>"
-    E2P3T1("Thread<sup>1</sup>")
-    E2P3T2("Thread<sup>2</sup>")
-    E2P3TN("Thread<sup>n</sup>")
-    end
-    end
-    subgraph "Environment<sup>2</sup>"
-    subgraph "Process<sup>2</sup>"
-    E2P2T1("Thread<sup>1</sup>")
-    E2P2T2("Thread<sup>2</sup>")
-    E2P2TN("Thread<sup>n</sup>")
-    end
-    end
-    subgraph "Environment<sup>1</sup>"
-    subgraph "Process<sup>1</sup>"
-    E1P1T1("Thread<sup>1</sup>")
-    E1P1T2("Thread<sup>2</sup>")
-    E1P1TN("Thread<sup>n</sup>")
+flowchart LR
+    subgraph Environment
+    subgraph Process
+    T1("Thread<sup>1</sup>")
+    T2("Thread<sup>2</sup>")
+    Tn("Thread<sup>n</sup>")
     end
     end
 ```
