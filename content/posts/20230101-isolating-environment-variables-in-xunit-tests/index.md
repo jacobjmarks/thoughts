@@ -1,16 +1,13 @@
 ---
 layout: post
-date:   2023-00-00 00:00:00 +1000
-draft: true # exclude from feed.xml
-published: false # exclude from homepage
-sitemap: false # exclude from sitemap.xml
-tags: testing
-repo:   https://github.com/jacobjmarks/xunit-environment-variable-isolation
+title: Isolating Environment Variables in xUnit Tests
+date: "2023-01-01"
+tags: [.NET, Testing]
 ---
 
-# Isolating Environment Variables in xUnit Tests
-
 When testing systems that utilise environment variables at runtime, careful consideration needs to be given to the design of both the system, if governed, and the test suite to avoid unexpected and seemingly irreproducible runtime and assertion failures when these variables are used in parallel.
+
+<!--more-->
 
 In our scenario, we require multiple test suites &mdash; each defined within a separate class &mdash; which tests some code that utilises a common set of environment variables.
 
@@ -169,11 +166,11 @@ The concept of decoupling high-level components from low-level implementations i
 
 Currently, our system under test is depending directly on the concrete methods provided via the static [`System.Environment`](https://learn.microsoft.com/en-us/dotnet/api/system.environment?view=net-6.0) class. We can represent this dependency with the following simple diagram:
 
-![UML Diagram A](/assets/2023-00-00-isolating-environment-variables-in-xunit-tests/uml-a.drawio.svg)
+{{< figure src="uml-a.drawio.svg" alt="UML Diagram A" align="center" >}}
 
 Making use of the dependency inversion principle, we can implement a layer of abstraction and refactor our design as follows:
 
-![UML Diagram B](/assets/2023-00-00-isolating-environment-variables-in-xunit-tests/uml-b.drawio.svg)
+{{< figure src="uml-b.drawio.svg" alt="UML Diagram B" align="center" >}}
 
 If the system under test is refactored to depend only on the _interface_, the _implementation_ can be substituted as we see fit; a default implementation can be provided to preserve the existing runtime requirements, and a stub or mock implementation can be created and used during our tests.
 
@@ -190,7 +187,7 @@ interface IEnvironmentVariableProvider
 
 While some additional code excerpts have been omitted here for brevity (I'm going to assume you have a basic understanding of interfaces, implementations, and dependency injection), after refactoring our system under test, we can update our tests to make use of a stub in-memory environment variable provider &mdash; which implements our new interface &mdash; as below:
 
-> Full implementation details can be found within this article's associated GitHub repository [here]({{ page.repo }}).
+> Full implementation details can be found within this article's associated GitHub repository [here](https://github.com/jacobjmarks/xunit-environment-variable-isolation).
 
 ``` csharp
 class TestSuiteA
@@ -242,7 +239,7 @@ I would also strongly suggest considering for your use case whether it would mak
 
 You can find complete examples and implementation details of all discussed solutions within the associated GitHub repository linked below:
 
-- [{{ page.repo | remove: "https://github.com/" }} &#124; GitHub]({{ page.repo }})
+- [jacobjmarks/xunit-environment-variable-isolation &#124; GitHub](https://github.com/jacobjmarks/xunit-environment-variable-isolation)
 
 ## Epilogue: A Word From the Author
 
