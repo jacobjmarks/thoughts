@@ -128,7 +128,7 @@ void Test()
 }
 ```
 
-> This will of course need to be done for _all_ environment variables that are modified during the test. I recommend developing an [`IDisposable`](https://learn.microsoft.com/en-us/dotnet/api/system.idisposable?view=net-7.0) abstraction around this concept to reduce code duplication and room for error. You can find an example of one [here]().
+> This will of course need to be done for _all_ environment variables that are modified during the test. I recommend developing an [`IDisposable`](https://learn.microsoft.com/en-us/dotnet/api/system.idisposable?view=net-7.0) abstraction around this concept to reduce code duplication and room for error. You can find an example of one [here](https://github.com/jacobjmarks/xunit-environment-variable-isolation/blob/main/Examples.SerialExecution/Support/TemporaryEnvironmentVariable.cs).
 
 <!-- In addition, if your system under test internally modifies one or more environment variables, you will also ideally need to restore these variables to their original values at the end of the test. If you don't know which environment variables will be modified, or the list of variables could change at runtime, you may need to perform a sort of "snapshot" of the environment at the start of your test such that you can appropriately restore it before the next test runs. -->
 
@@ -215,7 +215,7 @@ While there are of course other solutions to this problem &mdash; including the 
 
 I would also strongly suggest considering for your use case whether it would make sense to move away from the direct consumption of environment variables throughout your system under test, instead opting for a more traditional [.NET Configuration](https://learn.microsoft.com/en-us/dotnet/core/extensions/configuration) and [Options pattern](https://learn.microsoft.com/en-us/dotnet/core/extensions/options) approach; a robust, well-documented and common solution which lends itself to the previously discussed dependency inversion principle, among others.
 
-You can find complete examples and implementation details of all discussed solutions within the associated GitHub repository linked below:
+You can find complete examples and implementation details of solutions B and C within the GitHub repository linked below:
 
 - [jacobjmarks/xunit-environment-variable-isolation &#124; GitHub](https://github.com/jacobjmarks/xunit-environment-variable-isolation)
 
