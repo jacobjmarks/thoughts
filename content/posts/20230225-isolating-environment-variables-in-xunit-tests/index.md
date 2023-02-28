@@ -52,7 +52,7 @@ To visualise our conundrum, see below a representation of scope between the Envi
 
 {{< figure src="env-scope.drawio.svg" alt="Environment scope" align="center" width="435em" >}}
 
-As can be seen, irrespective of the thread in which we use, the same Environment with be utilised. Alas, we a left with a [race condition](https://en.wikipedia.org/wiki/Race_condition) when running our tests, which both attempt to read and write the same environment variable in parallel.
+As can be seen, irrespective of the thread in which we use, the same Environment will be utilised. Alas, we a left with a [race condition](https://en.wikipedia.org/wiki/Race_condition) when running our tests, which both attempt to read and write the same environment variable in parallel.
 
 So how should we go about resolving this issue?
 
