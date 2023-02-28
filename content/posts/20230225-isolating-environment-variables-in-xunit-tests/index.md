@@ -50,16 +50,7 @@ By default, xUnit creates a _test collection_ for each class within an assembly,
 
 To visualise our conundrum, see below a representation of scope between the Environment which holds our variables, the process which runs our test assembly, and the threads which run our test collections.
 
-``` mermaid
-flowchart LR
-    subgraph Environment
-    subgraph Process
-    T1("Thread<sup>1</sup>")
-    T2("Thread<sup>2</sup>")
-    Tn("Thread<sup>n</sup>")
-    end
-    end
-```
+{{< figure src="env-scope.drawio.svg" alt="Environment scope" align="center" >}}
 
 As can be seen, irrespective of the thread in which we use, the same Environment with be utilised. Alas, we a left with a [race condition](https://en.wikipedia.org/wiki/Race_condition) when running our tests, which both attempt to read and write the same environment variable in parallel.
 
