@@ -2,7 +2,7 @@ baseURL: https://hugo-test.jacobjmarks.dev/
 languageCode: en-us
 title: these are my thoughts
 copyright: >-
-  &copy; {{< year >}} [Jacob Marks](https://github.com/jacobjmarks)
+  &copy; 2023 [Jacob Marks](https://github.com/jacobjmarks)
 
 theme: PaperMod
 
