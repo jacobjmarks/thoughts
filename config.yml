@@ -79,7 +79,7 @@ params:
   #   hiddenInSingle: true # hide on single page
 
   editPost:
-    URL: "https://github.com/jacobjmarks/thoughts/content"
+    URL: "https://github.com/jacobjmarks/thoughts/content/tree/main"
     Text: "suggest an edit"
     appendFilePath: true
 
