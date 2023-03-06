@@ -3,7 +3,7 @@ layout: post
 title: Isolating Environment Variables in xUnit Tests
 date: 2023-03-01T00:00:00.000+1000
 tags: [.NET, Testing]
-images: ["posts/20230301-isolating-environment-variables-in-xunit-tests/env-scope.png"]
+images: ["posts/20230301-isolating-environment-variables-in-xunit-tests/opengraph.png"]
 ---
 
 When testing systems that utilise environment variables at runtime, careful consideration needs to be given to the design of both the system, if governed, and the test suite to avoid unexpected and seemingly irreproducible runtime and assertion failures when these variables are used in parallel.
