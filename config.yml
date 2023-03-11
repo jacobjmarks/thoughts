@@ -18,7 +18,7 @@ params:
   images: ["/images/jacobmarks.jpg"]
   DateFormat: "January 2, 2006"
   defaultTheme: auto # dark, light
-  disableThemeToggle: true
+  disableThemeToggle: false
 
   assets:
     disableHLJS: true
