@@ -6,7 +6,7 @@ tags: [.NET, Static Analysis]
 # images: ["posts/20230401-enabling-c#-sonar-analysers-in-visual-studio-code/opengraph.png"]
 ---
 
-The C# Sonar analysers provide immense value in identifying bugs, vulnerabilities and code smells within your code. Here's how you can enable them for use in Visual Studio Code.
+The C# Sonar analysers provide immense value in identifying bugs, vulnerabilities and code smells during development. Here's how you can enable them for use in Visual Studio Code.
 
 <!--more-->
 
