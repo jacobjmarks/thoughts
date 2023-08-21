@@ -4,7 +4,7 @@
 
 ### [2023-07-05 DevOps Recommendations](https://thoughts.jacobjmarks.dev/posts/20230705-devops-recommendations/)
 
-Recommendations for the configuration, management and utilisation of DevOps tooling when working on a project.
+Recommendations for the configuration, management and utilisation of DevOps tooling when working on a project to improve efficiency, reliability, traceability and the overall developer experience.
 
 ### [2023-03-03 Isolating Environment Variables in xUnit Tests](https://thoughts.jacobjmarks.dev/posts/20230301-isolating-environment-variables-in-xunit-tests/)
 
