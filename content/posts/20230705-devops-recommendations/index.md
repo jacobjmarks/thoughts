@@ -3,14 +3,14 @@ layout: post
 title: DevOps Recommendations
 date: 2023-07-05T00:00:00.000+1000
 tags: [CI/CD, DevEx, DevOps, Azure DevOps]
-summary: "Recommendations for the configuration, management and utilisation of DevOps tooling when working on a project."
+summary: "Recommendations for the configuration, management and utilisation of DevOps tooling when working on a project to improve efficiency, reliability, traceability and the overall developer experience."
 cover:
   image: "cover.png"
   relative: true
 ShowToc: true
 ---
 
-The following post provides recommendations for the configuration, management and utilisation of DevOps tooling when working on a project.
+The following post provides recommendations for the configuration, management and utilisation of DevOps tooling when working on a project to improve efficiency, reliability, traceability and the overall developer experience.
 
 While primarily in the context of Azure DevOps, concepts are written to be largely agnostic of the platform of choice and these recommendations are transferable.
 
