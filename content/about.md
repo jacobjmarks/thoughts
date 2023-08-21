@@ -12,7 +12,7 @@ I'm a Senior Software Engineer currently working at [Azenix](http://azenix.com.a
 
 With over 5 years of experience &mdash; both academic and professional &mdash; I've been exposed to a wide variety of technologies, programming languages and paradigms.
 
-Since graduating from Queensland University of Technology in 2018 with First Class Honours, I have long since desired to return to the world of content creation; I found great pleasure in creating analytical and educational written content during my time both studying and working and the university as a Sessional Academic and I.T. Research Assistant.
+Since graduating from Queensland University of Technology in 2018 with First Class Honours, I have long since desired to return to the world of content creation; I found great pleasure in creating analytical and educational written content during my time both studying and working at the university as a Sessional Academic and I.T. Research Assistant.
 
 This website is a personal project of mine in which I hope to share my thoughts and shine a light on a variety of software engineering tasks, topics and issues &mdash; including but not limited to the [Microsoft .NET](https://dotnet.microsoft.com/) space &mdash; to help educate others.
 
