@@ -125,3 +125,5 @@ markup:
     lineNos: true
     anchorLineNos: false
     guessSyntax: false
+  tableOfContents:
+    endLevel: 4
