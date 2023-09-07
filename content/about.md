@@ -8,7 +8,7 @@ disableShare: true
 
 Hi 👋 My name is Jacob.
 
-I'm a Senior Software Engineer currently working at [Azenix](http://azenix.com.au/).
+I'm a Senior Software Engineer currently working at [Digio](http://digio.com.au/), part of [Mantel Group](https://mantelgroup.com.au/).
 
 With over 5 years of experience &mdash; both academic and professional &mdash; I've been exposed to a wide variety of technologies, programming languages and paradigms.
 
